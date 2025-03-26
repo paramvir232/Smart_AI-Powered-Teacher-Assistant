@@ -3,12 +3,21 @@ import uvicorn
 from DB import engine, Base  # Import from __init__.py
 from dotenv import load_dotenv
 import os
+from Routes import *
 load_dotenv()
 
-app = FastAPI()
+app = FastAPI(debug=True)
 
 # Create tables in the database
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
+
+app.include_router(router)
+app.include_router(college_route)
+app.include_router(teacher_route)
+
+
+# app.include_router(assignment_router)
+
 
 @app.get("/")
 def home():
