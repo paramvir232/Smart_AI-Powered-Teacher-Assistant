@@ -23,7 +23,7 @@ class Teacher(Base):
     __tablename__ = "teachers"
     id = Column(Integer, primary_key=True, index=True)
     Tname = Column(String, nullable=False)
-    email = Column(String, unique=True, nullable=False)
+    Tpass = Column(String, nullable=False)
     college_id = Column(Integer, ForeignKey("colleges.id"))
 
     college = relationship("College", back_populates="teachers")  # ✅ Fixed relationship
@@ -51,7 +51,7 @@ class Class(Base):
 
 class Assignment(Base):
     __tablename__ = "assignments"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True,autoincrement=True)
     title = Column(String, nullable=False)
     cloudinary_url = Column(String, nullable=False)  # Storing Cloudinary URL
     due_date = Column(DateTime, nullable=False)  # Due date for submission
@@ -64,7 +64,7 @@ class Assignment(Base):
 
 class Submission(Base):
     __tablename__ = "submissions"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True,autoincrement=True)
     assignment_id = Column(Integer, ForeignKey("assignments.id"))
     student_id = Column(Integer, ForeignKey("students.id"))
     cloudinary_url = Column(String, nullable=False)  # Storing Cloudinary URL
@@ -77,6 +77,6 @@ class Submission(Base):
 
 class Enrollment(Base):
     __tablename__ = "enrollments"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True,autoincrement=True)
     student_id = Column(Integer, ForeignKey("students.id"))
     class_id = Column(Integer, ForeignKey("classes.id"))

@@ -57,7 +57,7 @@ def login(data: LOGIN, db: Session = Depends(get_db)):
 
     # ✅ Check if password matches
     if data.password == college_data.password:
-        return {"ID": data.id}
+        return {"Message":"Success Login","ID": data.id}
 
     # ✅ Proper failure response
     raise HTTPException(status_code=401, detail="Invalid password")

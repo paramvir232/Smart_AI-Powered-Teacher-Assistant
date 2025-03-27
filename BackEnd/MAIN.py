@@ -4,9 +4,17 @@ from DB import engine, Base  # Import from __init__.py
 from dotenv import load_dotenv
 import os
 from Routes import *
+import cloudinary
+import cloudinary.uploader
 load_dotenv()
 
 app = FastAPI(debug=True)
+
+cloudinary.config(
+  cloud_name = os.getenv('Cloud_name'),
+  api_key = os.getenv('API_key'),
+  api_secret = os.getenv('API_secret')
+)
 
 # Create tables in the database
 # Base.metadata.create_all(bind=engine)
