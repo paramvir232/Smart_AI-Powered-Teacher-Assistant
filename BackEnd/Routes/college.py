@@ -25,21 +25,21 @@ def detail(college_id:int ,db: Session = Depends(get_db)):
 class addTeacher(BaseModel):
     id:int
     Tname: str
-    email: str
+    Tpass: str
     college_id: int  # Example attributes for a teacher
 
 # Use POST instead of GET for adding a teacher
 @college_route.post("/add_teacher/")
 def add_teacher(teacher: addTeacher, db: Session = Depends(get_db)):
-    # ✅ Check if the college exists before adding tteacher
+    #   Check if the college exists before adding tteacher
     data = {
   "id": teacher.id,
   "Tname": teacher.Tname,
-  "email": teacher.email,
+  "Tpass": teacher.Tpass,
   "college_id": teacher.college_id
 }
 
-    # ✅ Insert teacher into the database
+    #   Insert teacher into the database
     new_teacher = CRUD.add_item(db, Teacher, **data)
     raise HTTPException(status_code=200, detail="Teacher Added Successfully")
 
@@ -49,17 +49,65 @@ class LOGIN(BaseModel):
 
 @college_route.post("/login/")
 def login(data: LOGIN, db: Session = Depends(get_db)):
-    # ✅ Get college data using CRUD
+    #   Get college data using CRUD
     college_data = CRUD.get_item(db, College, data.id)
 
     if not college_data:
         raise HTTPException(status_code=404, detail="College not found")
 
-    # ✅ Check if password matches
+    #   Check if password matches
     if data.password == college_data.password:
         return {"Message":"Success Login","ID": data.id}
 
-    # ✅ Proper failure response
+    #   Proper failure response
     raise HTTPException(status_code=401, detail="Invalid password")
         
-    
+class addStudent(BaseModel):
+    id:int
+    Sname: str
+    Spass: str
+    college_id: int  # Example attributes for a teacher
+
+# Use POST instead of GET for adding a teacher
+@college_route.post("/add_student/")
+def add_Student(STD: addStudent, db: Session = Depends(get_db)):
+    #   Check if the college exists before adding tteacher
+    data = {
+  "id": STD.id,
+  "Sname": STD.Sname,
+  "Spass": STD.Spass,
+  "college_id": STD.college_id
+}
+
+    #   Insert teacher into the database
+    new_STD = CRUD.add_item(db, Student, **data)
+    raise HTTPException(status_code=200, detail="Student Added Successfully")
+
+@college_route.get("/{college_id}/class_list/")
+def get_classes(college_id: int, db: Session = Depends(get_db)):
+    return CRUD.universal_query(
+        db=db,
+        base_model=Class,
+        joins=[
+            (Teacher, Teacher.id == Class.teacher_id),  # First join Teacher to Class
+            (College, College.id == Teacher.college_id) # Then join College to Teacher
+        ],
+        attributes={"classes": ["id", "Cname"]},
+        filters=[College.id == college_id]  # Ensure filters are in a list
+    )
+
+# class setEnrollment(BaseModel):
+#     student_id: int
+#     class_id: int
+
+# @college_route.post("/enroll/")
+# def set_Enrollment(STD: setEnrollment, db: Session = Depends(get_db)):
+#     #   Check if the college exists before adding tteacher
+#     data = {
+#   "student_id": STD.student_id,
+#   "class_id": STD.class_id}
+
+#     #   Insert teacher into the database
+#     new_STD = CRUD.add_item(db, Enrollment, **data)
+#     raise HTTPException(status_code=200, detail="Enrollment Added Successfully")
+

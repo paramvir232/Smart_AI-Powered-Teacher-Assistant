@@ -30,18 +30,18 @@ async def add_assignment(
     due_date: str = Form(...),
     teacher_id: int = Form(...),
     class_id: int = Form(...),
-    file: UploadFile = File(...),  # ✅ Accept file upload
+    file: UploadFile = File(...),  #   Accept file upload
     db: Session = Depends(get_db)
 ):
     try:
-        # ✅ Upload file to Cloudinary
+        #   Upload file to Cloudinary
         upload_result = cloudinary.uploader.upload(file.file)
-        file_url = upload_result.get("secure_url")  # ✅ Get file URL
+        file_url = upload_result.get("secure_url")  #   Get file URL
 
-        # ✅ Insert Assignment into the database
+        #   Insert Assignment into the database
         assignment_data = {
             "title": title,
-            "cloudinary_url": file_url,  # ✅ Save URL to DB
+            "cloudinary_url": file_url,  #   Save URL to DB
             "due_date": due_date,
             "teacher_id": teacher_id,
             "class_id": class_id
@@ -86,20 +86,20 @@ def upload_form():
 def view_student(class_id: int, db: Session = Depends(get_db)):
     return CRUD.universal_query(
         db=db,
-        base_model=Student,  # ✅ Start from Student
+        base_model=Student,  #   Start from Student
         joins=[
-            (Enrollment, Enrollment.student_id == Student.id),  # ✅ Join Student → Enrollment
-            (Class, Class.id == Enrollment.class_id),          # ✅ Join Enrollment → Class
-            (Assignment, Assignment.class_id == Class.id),     # ✅ Join Class → Assignment
-            (Submission, Submission.assignment_id == Assignment.id)  # ✅ Join Assignment → Submission
+            (Enrollment, Enrollment.student_id == Student.id),  #   Join Student → Enrollment
+            (Class, Class.id == Enrollment.class_id),          #   Join Enrollment → Class
+            (Assignment, Assignment.class_id == Class.id),     #   Join Class → Assignment
+            (Submission, Submission.assignment_id == Assignment.id)  #   Join Assignment → Submission
         ],
         filters=[
-            Enrollment.class_id == class_id  # ✅ Filter students by class
+            Enrollment.class_id == class_id  #   Filter students by class
         ],
         attributes={
-            "students": ["id", "Sname", "college_id"],  # ✅ Student details
-            "assignments": ["title"],                  # ✅ Assignment name
-            "submissions": ["grade"]                   # ✅ Grade for submission
+            "students": ["id", "Sname", "college_id"],  #   Student details
+            "assignments": ["title"],                  #   Assignment name
+            "submissions": ["grade"]                   #   Grade for submission
         }
     )
 
@@ -110,17 +110,17 @@ class LOGIN(BaseModel):
 
 @teacher_route.post("/login/")
 def login(data: LOGIN, db: Session = Depends(get_db)):
-    # ✅ Get college data using CRUD
+    #   Get college data using CRUD
     teacher_data = CRUD.get_item(db, Teacher, data.id)
 
     if not teacher_data:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
-    # ✅ Check if password matches
+    #   Check if password matches
     if data.password == teacher_data.Tpass:
         return {"Message":"Success Login","ID": data.id}
 
-    # ✅ Proper failure response
+    #   Proper failure response
     raise HTTPException(status_code=401, detail="Invalid password")
 
 

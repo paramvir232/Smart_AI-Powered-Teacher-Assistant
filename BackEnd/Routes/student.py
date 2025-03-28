@@ -27,17 +27,17 @@ class LOGIN(BaseModel):
 
 @student_route.post("/login/")
 def login(data: LOGIN, db: Session = Depends(get_db)):
-    # ✅ Get college data using CRUD
+    #   Get college data using CRUD
     student_data = CRUD.get_item(db, Student, data.id)
 
     if not student_data:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    # ✅ Check if password matches
+    #   Check if password matches
     if data.password == student_data.Spass:
         return {"Message":"Success Login","ID": data.id}
 
-    # ✅ Proper failure response
+    #   Proper failure response
     raise HTTPException(status_code=401, detail="Invalid password")
 
 from datetime import datetime, timezone
@@ -50,16 +50,16 @@ async def submit_assignment(
     db: Session = Depends(get_db)
 ):
     try:
-        # ✅ Upload file to Cloudinary
+        #   Upload file to Cloudinary
         upload_result = cloudinary.uploader.upload(file.file)
-        file_url = upload_result.get("secure_url")  # ✅ Get file URL
+        file_url = upload_result.get("secure_url")  #   Get file URL
 
-        # ✅ Insert Submission into the database
+        #   Insert Submission into the database
         submission_data = {
             "assignment_id": assignment_id,
             "student_id": student_id,
-            "cloudinary_url": file_url,  # ✅ Save URL to DB
-            "submitted_at": datetime.now(timezone.utc),  # ✅ Use UTC time
+            "cloudinary_url": file_url,  #   Save URL to DB
+            "submitted_at": datetime.now(timezone.utc),  #   Use UTC time
             "grade": None,  # No grade at submission time
             "feedback": None  # No feedback initially
         }
@@ -199,15 +199,15 @@ def get_feedback(student_id : int,ass_id : int,subm_id : int,db: Session = Depen
     text = ""
     with fitz.open(stream=pdf_stream, filetype="pdf") as doc:
         for page in doc:
-            text += page.get_text("text") + "\n"  # ✅ Use `get_text()`
+            text += page.get_text("text") + "\n"  #   Use `get_text()`
     
     gemini_feedback = to_gemini(text)
 
     submission_data = {
             "assignment_id": ass_id,
             "student_id": student_id,
-            "cloudinary_url": url,  # ✅ Save URL to DB
-            "submitted_at": submit_at,  # ✅ Use UTC time
+            "cloudinary_url": url,  #   Save URL to DB
+            "submitted_at": submit_at,  #   Use UTC time
             "grade": gemini_feedback["Grade"],  # No grade at submission time
             "feedback": gemini_feedback["FeedBack"]  # No feedback initially
         }
