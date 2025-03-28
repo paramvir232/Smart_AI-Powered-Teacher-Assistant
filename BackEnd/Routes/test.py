@@ -5,7 +5,7 @@ from DB import *  # Import User model
 # from DB import CRUD  # Import CRUD functions
 # from schemas import UserSchema  # Pydantic schema
 
-router = APIRouter(prefix="/users", tags=["USER"])
+router = APIRouter(prefix="/users", tags=["test"])
 
 
 @router.get("/")

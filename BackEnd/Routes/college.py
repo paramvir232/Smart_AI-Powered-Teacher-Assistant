@@ -14,7 +14,7 @@ def teachers(college_id:int ,db: Session = Depends(get_db)):
     db=db,
     base_model=Teacher,
     joins=[(College, College.id == Teacher.college_id)],
-    attributes={"teachers": ["id","Tname","email"]},
+    attributes={"teachers": ["id","Tname"]},
     filters=[College.id == college_id]  # Ensure filters are in a list
 )
 @college_route.get("/{college_id}/details")

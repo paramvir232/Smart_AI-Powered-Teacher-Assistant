@@ -34,7 +34,7 @@ class Student(Base):
     __tablename__ = "students"
     id = Column(Integer, primary_key=True, index=True)
     Sname = Column(String, nullable=False)
-    email = Column(String, unique=True, nullable=False)
+    Spass = Column(String, nullable=False)
     college_id = Column(Integer, ForeignKey("colleges.id"))
 
     college = relationship("College", back_populates="students")  # ✅ Fixed relationship
@@ -64,7 +64,7 @@ class Assignment(Base):
 
 class Submission(Base):
     __tablename__ = "submissions"
-    id = Column(Integer, primary_key=True, index=True,autoincrement=True)
+    sub_id = Column(Integer, primary_key=True, index=True,autoincrement=True)
     assignment_id = Column(Integer, ForeignKey("assignments.id"))
     student_id = Column(Integer, ForeignKey("students.id"))
     cloudinary_url = Column(String, nullable=False)  # Storing Cloudinary URL

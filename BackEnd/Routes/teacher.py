@@ -8,6 +8,7 @@ import cloudinary
 import cloudinary.uploader
 
 
+
 teacher_route = APIRouter(prefix="/teacher", tags=["TEACHER"])
 
 @teacher_route.get("/{Tid}/classes")
@@ -85,14 +86,21 @@ def upload_form():
 def view_student(class_id: int, db: Session = Depends(get_db)):
     return CRUD.universal_query(
         db=db,
-        base_model=Student,  
+        base_model=Student,  # ✅ Start from Student
         joins=[
-            (Enrollment, Enrollment.student_id == Student.id)  # ✅ Join Enrollment with Student
+            (Enrollment, Enrollment.student_id == Student.id),  # ✅ Join Student → Enrollment
+            (Class, Class.id == Enrollment.class_id),          # ✅ Join Enrollment → Class
+            (Assignment, Assignment.class_id == Class.id),     # ✅ Join Class → Assignment
+            (Submission, Submission.assignment_id == Assignment.id)  # ✅ Join Assignment → Submission
         ],
         filters=[
-            Enrollment.class_id == class_id  # ✅ Filter by class_id
+            Enrollment.class_id == class_id  # ✅ Filter students by class
         ],
-        attributes={"students": ["id","Sname","email","college_id"]}  # ✅ Fetch only Student names
+        attributes={
+            "students": ["id", "Sname", "college_id"],  # ✅ Student details
+            "assignments": ["title"],                  # ✅ Assignment name
+            "submissions": ["grade"]                   # ✅ Grade for submission
+        }
     )
 
 class LOGIN(BaseModel):
@@ -116,3 +124,4 @@ def login(data: LOGIN, db: Session = Depends(get_db)):
     raise HTTPException(status_code=401, detail="Invalid password")
 
 
+#-------Display Complete Student Assignment--------

@@ -19,9 +19,11 @@ cloudinary.config(
 # Create tables in the database
 # Base.metadata.create_all(bind=engine)
 
-app.include_router(router)
+# app.include_router(router)
 app.include_router(college_route)
 app.include_router(teacher_route)
+app.include_router(student_route)
+
 
 
 # app.include_router(assignment_router)
