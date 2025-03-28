@@ -6,9 +6,23 @@ import os
 from Routes import *
 import cloudinary
 import cloudinary.uploader
+from fastapi.middleware.cors import CORSMiddleware
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 load_dotenv()
 
-app = FastAPI(debug=True)
+app = FastAPI(debug=False)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],   # Allow all methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],   # Allow all headers
+)
 
 cloudinary.config(
   cloud_name = os.getenv('Cloud_name'),
@@ -26,9 +40,19 @@ app.include_router(student_route)
 
 
 
+
 # app.include_router(assignment_router)
+
+
+@app.get("/test")
+def test():
+    return {"message": "API is running 🚀"}
 
 
 @app.get("/")
 def home():
-    return {"message": "API is running 🚀"}
+    logger.info("Home endpoint accessed")
+    return {"message": "Production ready!"}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
