@@ -63,7 +63,6 @@ pyasn1==0.6.1
 pyasn1_modules==0.4.1
 pycparser==2.22
 pydantic>=1.7.4,<3.0.0
-pydantic-sqlalchemy>=0.0.9
 pydantic_core==2.27.2
 pygame==2.6.1
 PyJWT==2.10.1
