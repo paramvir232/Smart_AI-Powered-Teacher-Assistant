@@ -96,18 +96,24 @@ def get_classes(college_id: int, db: Session = Depends(get_db)):
         filters=[College.id == college_id]  # Ensure filters are in a list
     )
 
-# class setEnrollment(BaseModel):
-#     student_id: int
-#     class_id: int
+class setEnrollment(BaseModel):
+    student_id: int
+    class_id: int
 
-# @college_route.post("/enroll/")
-# def set_Enrollment(STD: setEnrollment, db: Session = Depends(get_db)):
-#     #   Check if the college exists before adding tteacher
-#     data = {
-#   "student_id": STD.student_id,
-#   "class_id": STD.class_id}
+@college_route.post("/enroll/")
+def set_Enrollment(STD: setEnrollment, db: Session = Depends(get_db)):
+    # Check if the enrollment already exists
+    existing_enrollment = db.query(Enrollment).filter_by(
+        student_id=STD.student_id, class_id=STD.class_id
+    ).first()
 
-#     #   Insert teacher into the database
-#     new_STD = CRUD.add_item(db, Enrollment, **data)
-#     raise HTTPException(status_code=200, detail="Enrollment Added Successfully")
+    if existing_enrollment:
+        raise HTTPException(status_code=400, detail="Student already enrolled in this class.")
 
+    # Insert new enrollment (id will auto-increment)
+    new_enrollment = Enrollment(student_id=STD.student_id, class_id=STD.class_id)
+    db.add(new_enrollment)
+    db.commit()
+    db.refresh(new_enrollment)
+
+    return {"message": "Enrollment Added Successfully", "enrollment_id": new_enrollment.id}

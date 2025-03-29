@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import cloudinary
 import cloudinary.uploader
+from sqlalchemy.sql.functions import func
 
 
 
@@ -84,24 +85,41 @@ def upload_form():
 
 @teacher_route.get('/viewstudents/{class_id}')
 def view_student(class_id: int, db: Session = Depends(get_db)):
-    return CRUD.universal_query(
-        db=db,
-        base_model=Student,  #   Start from Student
-        joins=[
-            (Enrollment, Enrollment.student_id == Student.id),  #   Join Student → Enrollment
-            (Class, Class.id == Enrollment.class_id),          #   Join Enrollment → Class
-            (Assignment, Assignment.class_id == Class.id),     #   Join Class → Assignment
-            (Submission, Submission.assignment_id == Assignment.id)  #   Join Assignment → Submission
-        ],
-        filters=[
-            Enrollment.class_id == class_id  #   Filter students by class
-        ],
-        attributes={
-            "students": ["id", "Sname", "college_id"],  #   Student details
-            "assignments": ["title"],                  #   Assignment name
-            "submissions": ["grade"]                   #   Grade for submission
-        }
+    # Query for students enrolled in the class
+    students = (
+        db.query(Student.id, Student.Sname, Student.college_id)
+        .join(Enrollment, Enrollment.student_id == Student.id)
+        .filter(Enrollment.class_id == class_id)
+        .all()
     )
+
+    # Query for submissions made by students in the class
+    submissions = (
+        db.query(
+            Student.id,
+            Assignment.title.label("assignment_title"),
+            func.coalesce(Submission.grade, 0).label("grade")
+        )
+        .join(Enrollment, Enrollment.student_id == Student.id)
+        .join(Class, Class.id == Enrollment.class_id)
+        .join(Assignment, Assignment.class_id == Class.id)
+        .outerjoin(Submission, (Submission.assignment_id == Assignment.id) & (Submission.student_id == Student.id))
+        .filter(Enrollment.class_id == class_id)
+        .all()
+    )
+
+    # Convert to dictionaries for easy manipulation
+    student_dict = {s.id: {"id": s.id, "Sname": s.Sname, "college_id": s.college_id, "assignments": []} for s in students}
+
+    # Add assignment details to the respective students
+    for row in submissions:
+        student_dict[row.id]["assignments"].append({
+            "title": row.assignment_title,
+            "grade": row.grade
+        })
+
+    # Convert to a list format for the response
+    return list(student_dict.values())
 
 class LOGIN(BaseModel):
     id:int

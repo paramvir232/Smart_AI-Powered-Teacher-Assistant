@@ -219,7 +219,7 @@ def get_feedback(student_id : int,ass_id : int,subm_id : int,db: Session = Depen
     # return url[0]["cloudinary_url"]
 
 @student_route.get("/submissions/{student_id}")
-def get_assignments(student_id: int, db: Session = Depends(get_db)):
+def get_submissions(student_id: int, db: Session = Depends(get_db)):
     return  CRUD.universal_query(
         db=db,
         base_model=Submission,  #  Start from Student since we filter by student_id

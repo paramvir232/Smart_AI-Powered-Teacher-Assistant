@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-app = FastAPI(debug=False)
+app = FastAPI(debug=True)
 
 app.add_middleware(
     CORSMiddleware,
