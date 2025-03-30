@@ -108,7 +108,7 @@ def get_assignments(student_id: int, db: Session = Depends(get_db)):
             Student.id == student_id  # Filter by student_id
         ],
         attributes={
-            "assignments": ["title", "cloudinary_url", "due_date"],
+            "assignments": ["id","title", "cloudinary_url", "due_date"],
             "classes":["Cname"]
         }  # Get assignment details
     )
