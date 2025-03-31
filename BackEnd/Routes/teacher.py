@@ -120,7 +120,7 @@ def view_student(class_id: int, db: Session = Depends(get_db)):
             "title": row.assignment_title,
             "grade": row.grade,
             "url":row.url,
-            "Submission_date":row.submitted_at
+            "Submitted_At":row.submitted_at
         })
 
     # Convert to a list format for the response
