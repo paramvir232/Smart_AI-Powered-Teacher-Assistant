@@ -99,7 +99,9 @@ def view_student(class_id: int, db: Session = Depends(get_db)):
             Student.id,
             Assignment.title.label("assignment_title"),
             func.coalesce(Submission.grade, 0).label("grade"),
-            Submission.cloudinary_url.label("url")
+            Submission.cloudinary_url.label("url"),
+            Submission.submitted_at
+
         )
         .join(Enrollment, Enrollment.student_id == Student.id)
         .join(Class, Class.id == Enrollment.class_id)
@@ -117,7 +119,8 @@ def view_student(class_id: int, db: Session = Depends(get_db)):
         student_dict[row.id]["assignments"].append({
             "title": row.assignment_title,
             "grade": row.grade,
-            "url":row.url
+            "url":row.url,
+            "Submission_date":row.submitted_at
         })
 
     # Convert to a list format for the response
