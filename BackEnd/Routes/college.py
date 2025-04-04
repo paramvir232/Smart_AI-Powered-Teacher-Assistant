@@ -117,3 +117,36 @@ def set_Enrollment(STD: setEnrollment, db: Session = Depends(get_db)):
     db.refresh(new_enrollment)
 
     return {"message": "Enrollment Added Successfully", "enrollment_id": new_enrollment.id}
+
+
+@college_route.get("/{College_id}/student_list/")
+def get_student(College_id:int ,db: Session = Depends(get_db)):
+    return CRUD.universal_query(
+    db=db,
+    base_model=Student,
+    joins=[(College, College.id == Student.college_id)],
+    filters=[College.id == College_id]  # Ensure filters are in a list
+)
+
+
+@college_route.get("/{college_id}/search_student/{student_id}")
+def search_student(College_id:int,student_id:int,db: Session = Depends(get_db)):
+    return CRUD.universal_query(
+    db=db,
+    base_model=Student,
+    joins=[(College, College.id == Student.college_id)],
+    filters=[College.id == College_id,
+             Student.id == student_id]  # Ensure filters are in a list
+)
+
+@college_route.get("/{college_id}/search_teacher/{Teacher_id}")
+def search_teacher(College_id:int,Teacher_id:int,db: Session = Depends(get_db)):
+    return CRUD.universal_query(
+    db=db,
+    base_model=Teacher,
+    joins=[(College, College.id == Teacher.college_id)],
+    filters=[College.id == College_id,
+            Teacher.id == Teacher_id]  # Ensure filters are in a list
+)
+
+@college_route.get("/signup")

@@ -232,3 +232,8 @@ def get_submissions(student_id: int, db: Session = Depends(get_db)):
             "submissions": ["assignment_id","sub_id","cloudinary_url","submitted_at","grade","feedback"]
         }  # Get assignment details
     )
+
+@student_route.get("/{student_id}/details")
+def detail(student_id:int ,db: Session = Depends(get_db)):
+
+    return CRUD.get_item(db,Student,student_id)

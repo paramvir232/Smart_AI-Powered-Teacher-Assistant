@@ -14,6 +14,9 @@ class College(Base):
     id = Column(Integer, primary_key=True, index=True)
     Colname = Column(String, nullable=False)
     password= Column(String, nullable=False)
+    Cemail = Column(String, nullable=False)
+    Ccontact = Column(String, nullable=False)
+
 
     # College has multiple teachers and students
     teachers = relationship("Teacher", back_populates="college")  
@@ -25,6 +28,9 @@ class Teacher(Base):
     Tname = Column(String, nullable=False)
     Tpass = Column(String, nullable=False)
     college_id = Column(Integer, ForeignKey("colleges.id"))
+    Temail = Column(String, nullable=False)
+    Tcontact = Column(String, nullable=False)
+    
 
     college = relationship("College", back_populates="teachers")  # ✅ Fixed relationship
     classes = relationship("Class", back_populates="teacher")  # ✅ Added missing relationship
@@ -35,6 +41,8 @@ class Student(Base):
     id = Column(Integer, primary_key=True, index=True)
     Sname = Column(String, nullable=False)
     Spass = Column(String, nullable=False)
+    Semail = Column(String, nullable=False)
+    Scontact = Column(String, nullable=False)
     college_id = Column(Integer, ForeignKey("colleges.id"))
 
     college = relationship("College", back_populates="students")  # ✅ Fixed relationship
