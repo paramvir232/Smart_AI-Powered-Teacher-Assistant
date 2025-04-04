@@ -15,7 +15,7 @@ class College(Base):
     Colname = Column(String, nullable=False)
     password= Column(String, nullable=False)
 
-    # ✅ College has multiple teachers and students
+    # College has multiple teachers and students
     teachers = relationship("Teacher", back_populates="college")  
     students = relationship("Student", back_populates="college")  
 

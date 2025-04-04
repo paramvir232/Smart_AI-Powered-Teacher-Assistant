@@ -229,6 +229,6 @@ def get_submissions(student_id: int, db: Session = Depends(get_db)):
                # Filter by student_id
         ],
         attributes={
-            "submissions": ["sub_id","cloudinary_url","submitted_at","grade","feedback"]
+            "submissions": ["assignment_id","sub_id","cloudinary_url","submitted_at","grade","feedback"]
         }  # Get assignment details
     )
