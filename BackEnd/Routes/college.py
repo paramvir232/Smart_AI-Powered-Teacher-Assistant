@@ -149,4 +149,4 @@ def search_teacher(College_id:int,Teacher_id:int,db: Session = Depends(get_db)):
             Teacher.id == Teacher_id]  # Ensure filters are in a list
 )
 
-@college_route.get("/signup")
+# @college_route.get("/signup")
