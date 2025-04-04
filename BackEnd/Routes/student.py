@@ -237,3 +237,19 @@ def get_submissions(student_id: int, db: Session = Depends(get_db)):
 def detail(student_id:int ,db: Session = Depends(get_db)):
 
     return CRUD.get_item(db,Student,student_id)
+
+class UpdatePassword(BaseModel):
+    id: int
+    new_password: str
+
+@student_route.patch("/update-password")
+def update_student_password(payload: UpdatePassword, db: Session = Depends(get_db)):
+    student = db.query(Student).filter(Student.id == payload.id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    student.Spass = payload.new_password
+    db.commit()
+    db.refresh(student)
+
+    return {"message": "Password updated successfully"}

@@ -149,4 +149,41 @@ def search_teacher(College_id:int,Teacher_id:int,db: Session = Depends(get_db)):
             Teacher.id == Teacher_id]  # Ensure filters are in a list
 )
 
-# @college_route.get("/signup")
+class _SIGNUP_(BaseModel):
+    id : int
+    Colname: str
+    password: str
+    Cemail: str
+    Ccontact: str
+
+@college_route.post("/signup")
+def signup(sign_up_data: _SIGNUP_ ,db: Session = Depends(get_db)):
+    try:
+        data = {
+        "id": sign_up_data.id,
+        "Colname": sign_up_data.Colname,
+        "password": sign_up_data.password,
+        "Cemail": sign_up_data.Cemail,
+        "Ccontact": sign_up_data.Ccontact
+        }
+        new_submission = CRUD.add_item(db, College, **data)
+        return {"message": "Successful Signup!", "id": sign_up_data.id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+class UpdatePassword(BaseModel):
+    id: int
+    new_password: str
+
+@college_route.patch("/update-password")
+def update_college_password(payload: UpdatePassword, db: Session = Depends(get_db)):
+    college = db.query(College).filter(College.id == payload.id).first()
+    if not college:
+        raise HTTPException(status_code=404, detail="College not found")
+
+    college.password = payload.new_password
+    db.commit()
+    db.refresh(college)
+
+    return {"message": "Password updated successfully"}

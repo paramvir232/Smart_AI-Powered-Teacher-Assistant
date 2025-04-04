@@ -147,4 +147,18 @@ def login(data: LOGIN, db: Session = Depends(get_db)):
     raise HTTPException(status_code=401, detail="Invalid password")
 
 
-#-------Display Complete Student Assignment--------
+class UpdatePassword(BaseModel):
+    id: int
+    new_password: str
+
+@teacher_route.patch("/update-password")
+def update_teacher_password(payload: UpdatePassword, db: Session = Depends(get_db)):
+    teacher = db.query(Teacher).filter(Teacher.id == payload.id).first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+
+    teacher.Tpass = payload.new_password
+    db.commit()
+    db.refresh(teacher)
+
+    return {"message": "Password updated successfully"}
