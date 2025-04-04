@@ -183,7 +183,7 @@ def get_feedback(student_id : int,ass_id : int,subm_id : int,db: Session = Depen
             "submissions": ["sub_id","cloudinary_url","submitted_at"]
         }  # Get assignment details
     )
-    id = url[0]["id"]
+    id = url[0]["sub_id"]
     submit_at = url[0]["submitted_at"]
     url = url[0]["cloudinary_url"]
 
