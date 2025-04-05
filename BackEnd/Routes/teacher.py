@@ -8,6 +8,10 @@ import cloudinary
 import cloudinary.uploader
 from sqlalchemy.sql.functions import func
 import requests
+import os
+import smtplib
+from dotenv import load_dotenv
+load_dotenv()
 
 
 teacher_route = APIRouter(prefix="/teacher", tags=["TEACHER"])
@@ -162,3 +166,26 @@ def update_teacher_password(payload: UpdatePassword, db: Session = Depends(get_d
     db.refresh(teacher)
 
     return {"message": "Password updated successfully"}
+
+class EMAIL(BaseModel):
+    email: str
+    msg: str
+
+@teacher_route.post("/send_Mail")
+def send_email(data: EMAIL, db: Session = Depends(get_db)):
+    my_google_email = os.getenv('my_google_email')
+    to_email = data.email
+    google_password = os.getenv('google_password')
+
+    try:
+        with smtplib.SMTP('smtp.gmail.com') as connection:
+                    connection.starttls()
+                    connection.login(user=my_google_email, password=google_password)
+                    connection.sendmail(from_addr=my_google_email, to_addrs=to_email,
+                                        msg=f'Subject:Teacher Message !!\n\n{data.msg}')
+        return {"Status":"Message Sent"}   
+    except:
+        raise HTTPException(status_code=404, detail="Email not found")
+
+
+
