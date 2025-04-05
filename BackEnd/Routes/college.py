@@ -14,7 +14,7 @@ def teachers(college_id:int ,db: Session = Depends(get_db)):
     db=db,
     base_model=Teacher,
     joins=[(College, College.id == Teacher.college_id)],
-    attributes={"teachers": ["id","Tname"]},
+    attributes={"teachers": ["id","Tname","Temail","Tcontact"]},
     filters=[College.id == college_id]  # Ensure filters are in a list
 )
 @college_route.get("/{college_id}/details")
@@ -27,6 +27,8 @@ class addTeacher(BaseModel):
     Tname: str
     Tpass: str
     college_id: int  # Example attributes for a teacher
+    Temail: str
+    Tcontact: str
 
 # Use POST instead of GET for adding a teacher
 @college_route.post("/add_teacher/")
@@ -36,7 +38,9 @@ def add_teacher(teacher: addTeacher, db: Session = Depends(get_db)):
   "id": teacher.id,
   "Tname": teacher.Tname,
   "Tpass": teacher.Tpass,
-  "college_id": teacher.college_id
+  "college_id": teacher.college_id,
+  "Temail":teacher.Temail,
+  "Tcontact":teacher.Tcontact
 }
 
     #   Insert teacher into the database
@@ -66,6 +70,8 @@ class addStudent(BaseModel):
     id:int
     Sname: str
     Spass: str
+    Semail: str
+    Scontact: str
     college_id: int  # Example attributes for a teacher
 
 # Use POST instead of GET for adding a teacher
@@ -76,6 +82,8 @@ def add_Student(STD: addStudent, db: Session = Depends(get_db)):
   "id": STD.id,
   "Sname": STD.Sname,
   "Spass": STD.Spass,
+  "Semail":STD.Semail,
+  "Scontact":STD.Scontact,
   "college_id": STD.college_id
 }
 
@@ -111,7 +119,10 @@ def set_Enrollment(STD: setEnrollment, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Student already enrolled in this class.")
 
     # Insert new enrollment (id will auto-increment)
-    new_enrollment = Enrollment(student_id=STD.student_id, class_id=STD.class_id)
+    new_enrollment = CRUD.add_item(db, Enrollment,
+        student_id=STD.student_id,
+        class_id=STD.class_id
+    )
     db.add(new_enrollment)
     db.commit()
     db.refresh(new_enrollment)
@@ -187,3 +198,21 @@ def update_college_password(payload: UpdatePassword, db: Session = Depends(get_d
     db.refresh(college)
 
     return {"message": "Password updated successfully"}
+
+class ClassCreate(BaseModel):
+    class_id: int
+    class_name: str
+    teacher_id: int
+
+@college_route.post("/add_class")
+def add_class(class_data: ClassCreate, db: Session = Depends(get_db)):
+    try:
+        data = {
+            "id": class_data.class_id,
+            "Cname": class_data.class_name,
+            "teacher_id": class_data.teacher_id
+        }
+        new_class = CRUD.add_item(db, Class, **data)
+        return {"message": "Class added successfully", "class_id": class_data.class_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error adding class: {str(e)}")

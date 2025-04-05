@@ -1,26 +1,30 @@
-import requests
+from dotenv import load_dotenv
+from twilio.rest import Client
+import os
+load_dotenv()
 
-ACCESS_TOKEN = "EAAOLLkQx0AsBO1TwjX3qVnSFm4NvAosHNsLVoZAqiIwekFFkJ1kV6aTYp5aVCfZAiE5VeHNlmdvQ27A7ypzWmz3EbVmjpgm8KJIKuqhi3BFZAzgCVC4YVipNAkjBLQT2D28r6rZCrCcyiFu1f3rc6swOulMhZAcMTRxQvhJUigSLGEuaC0UbuxoEH161gSoxa8VRZA3eGYmMIvfRIFspo9WTlLTalJ3u8JKzAZD"
-PHONE_NUMBER_ID = "623489157512901"
-TO_NUMBER = "917009095231"  # with country code, no '+' sign
+# Your Twilio account SID and Auth Token
+account_sid = os.getenv('TWILIO_SID')
+auth_token = os.getenv('TWILIO_TOKEN')
 
-def send_whatsapp_message():
-    url = f"https://graph.facebook.com/v18.0/{PHONE_NUMBER_ID}/messages"
-    headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "messaging_product": "whatsapp",
-        "to": TO_NUMBER,
-        "type": "text",
-        "text": {
-            "body": "📚 Hello! You've got a new assignment. Please check your dashboard for details. 😊"
-        }
-    }
+client = Client(account_sid, auth_token)
 
-    response = requests.post(url, headers=headers, json=data)
-    print(response.status_code)
-    print(response.json())
 
-send_whatsapp_message()
+message = client.messages.create(
+    body='Hey! This is a test message from my Python script via WhatsApp 😄',
+    from_='whatsapp:+14155238886',       # Twilio sandbox number
+    to='whatsapp:+917009095231'          # Your phone number with country code
+)
+
+print('Message SID:', message.sid)
+
+# import smtplib
+# my_google_email = 'pythonmail887@gmail.com'
+# to_email = 'coder4614@gmail.com'
+# google_password = 'mlphuwrgqylhbqgn'
+
+# with smtplib.SMTP('smtp.gmail.com') as connection:
+#             connection.starttls()
+#             connection.login(user=my_google_email, password=google_password)
+#             connection.sendmail(from_addr=my_google_email, to_addrs=to_email,
+#                                 msg=f'Subject:ISS ALERT !!\n\n LOOK UP ISS IS THERE !!')

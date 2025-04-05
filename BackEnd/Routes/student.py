@@ -253,3 +253,38 @@ def update_student_password(payload: UpdatePassword, db: Session = Depends(get_d
     db.refresh(student)
 
     return {"message": "Password updated successfully"}
+
+class QUERY(BaseModel):
+    query_text: str
+
+@student_route.post("/chatbot")
+def Chatbot_feedback(query: QUERY, db: Session = Depends(get_db)):
+    prompt= f"""
+You are a helpful AI assistant integrated into a college management system. The student has sent the following query. Please understand the intent and respond clearly, using friendly and informative language. If the query is about assignments, enrollment, class schedules, grades, or college announcements, provide a relevant answer. Otherwise, say you couldn’t understand and suggest rephrasing.
+
+User Query: "{query.query_text}
+
+ ---
+
+        ### **📝 Expected Output from You (Teacher)**
+        Provide a JSON response strictly in this format:
+        {{
+            "FeedBack": str
+        }}
+        The output should **ONLY** be valid JSON, with no additional text."""
+    response = client.models.generate_content(
+        model='gemini-2.0-flash-thinking-exp',
+        contents=prompt,
+    )
+    response_text=response.text
+    start_index = response_text.find('{')
+    end_index = response_text.rfind('}')
+
+    # Extract the JSON substring
+    if start_index != -1 and end_index != -1:
+        json_string = response_text[start_index:end_index+1]  # Include the closing brace
+        print(json_string)
+    else:
+        print("No valid JSON found.")
+
+    return json.loads(json_string)

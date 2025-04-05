@@ -7,7 +7,7 @@ from pydantic import BaseModel
 import cloudinary
 import cloudinary.uploader
 from sqlalchemy.sql.functions import func
-
+import requests
 
 
 teacher_route = APIRouter(prefix="/teacher", tags=["TEACHER"])
