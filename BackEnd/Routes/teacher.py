@@ -11,6 +11,7 @@ import requests
 import os
 import smtplib
 from dotenv import load_dotenv
+from email.mime.text import MIMEText
 load_dotenv()
 
 
@@ -174,18 +175,24 @@ class EMAIL(BaseModel):
 @teacher_route.post("/send_Mail")
 def send_email(data: EMAIL, db: Session = Depends(get_db)):
     my_google_email = os.getenv('my_google_email')
-    to_email = data.email
     google_password = os.getenv('google_password')
+    to_email = data.email
+
+    if not my_google_email or not google_password:
+        raise HTTPException(status_code=500, detail="Email credentials not set in environment variables.")
 
     try:
-        with smtplib.SMTP('smtp.gmail.com') as connection:
-                    connection.starttls()
-                    connection.login(user=my_google_email, password=google_password)
-                    connection.sendmail(from_addr=my_google_email, to_addrs=to_email,
-                                        msg=f'Subject:Teacher Message !!\n\n{data.msg}')
-        return {"Status":"Message Sent"}   
-    except:
-        raise HTTPException(status_code=404, detail="Email not found")
+        message = MIMEText(data.msg)
+        message['Subject'] = 'Teacher Message !!'
+        message['From'] = my_google_email
+        message['To'] = to_email
 
+        with smtplib.SMTP('smtp.gmail.com', 587) as connection:
+            connection.starttls()
+            connection.login(user=my_google_email, password=google_password)
+            connection.send_message(message)
 
+        return {"Status": "Message Sent"}   
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Email sending failed: {str(e)}")
