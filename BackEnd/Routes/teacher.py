@@ -12,6 +12,7 @@ import os
 import smtplib
 from dotenv import load_dotenv
 from email.mime.text import MIMEText
+
 load_dotenv()
 
 
@@ -196,3 +197,42 @@ def send_email(data: EMAIL, db: Session = Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Email sending failed: {str(e)}")
+    
+@teacher_route.post("/upload-mst1/{class_id}")
+def upload_MST1_exam(class_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    try:
+        # Upload file to Cloudinary
+        result = cloudinary.uploader.upload(file.file, resource_type="raw")
+        file_url = result.get("secure_url")
+
+        class_data = db.query(Class).filter(Class.id == class_id).first()
+        if not class_data:
+            raise HTTPException(status_code=404, detail="Class not found")
+
+        class_data.mst1_url = file_url
+        db.commit()
+
+        return {"message": "File uploaded and URL saved", "url": file_url}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@teacher_route.post("/upload-mst2/{class_id}")
+def upload_MST2_exam(class_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    try:
+        # Upload file to Cloudinary
+        result = cloudinary.uploader.upload(file.file, resource_type="raw")
+        file_url = result.get("secure_url")
+
+        class_data = db.query(Class).filter(Class.id == class_id).first()
+        if not class_data:
+            raise HTTPException(status_code=404, detail="Class not found")
+
+        class_data.mst2_url = file_url
+        db.commit()
+
+        return {"message": "File uploaded and URL saved", "url": file_url}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    

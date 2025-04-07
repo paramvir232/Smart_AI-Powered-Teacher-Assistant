@@ -15,6 +15,10 @@ from google import genai
 import json 
 # from google.genai import types
 from dotenv import load_dotenv
+import pandas as pd
+import requests
+from io import BytesIO
+
 load_dotenv()
 
 client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
@@ -288,3 +292,87 @@ User Query: "{query.query_text}
         print("No valid JSON found.")
 
     return json.loads(json_string)
+
+
+@student_route.get("/{student_id}/mst1-result")
+def get_internal_exam_urls(student_id: int, db: Session = Depends(get_db)):
+
+    data = CRUD.universal_query(
+    db=db,
+    base_model=Student,  # Start from Student
+    joins=[
+        (Enrollment, Enrollment.student_id == Student.id),   # Student → Enrollment
+        (Class, Class.id == Enrollment.class_id),            # Enrollment → Class
+    ],
+    filters=[
+        Student.id == student_id
+    ],
+    attributes={
+        "classes": ["mst1_url"]
+    }
+    )
+    # Replace with your actual Excel file link
+    excel_url = data[0]["mst1_url"]
+
+    # Step 1: Download the Excel file from URL
+    response = requests.get(excel_url)
+    response.raise_for_status()  # Raise error if download fails
+
+    # Step 2: Load Excel content into pandas DataFrame
+    excel_data = pd.read_excel(BytesIO(response.content))
+
+    # Step 3: Convert to JSON
+    records = excel_data.to_json(orient="records")
+
+    # (Optional) Print or return JSON
+    # result = json.loads(json_data)
+    parsed_records = json.loads(records)
+
+    filtered = [record for record in parsed_records if record.get("stu_id") == student_id]
+
+    return filtered
+
+
+@student_route.get("/{student_id}/mst2-result")
+def get_internal_exam_urls(student_id: int, db: Session = Depends(get_db)):
+
+    data = CRUD.universal_query(
+    db=db,
+    base_model=Student,  # Start from Student
+    joins=[
+        (Enrollment, Enrollment.student_id == Student.id),   # Student → Enrollment
+        (Class, Class.id == Enrollment.class_id),            # Enrollment → Class
+    ],
+    filters=[
+        Student.id == student_id
+    ],
+    attributes={
+        "classes": ["mst2_url"]
+    }
+    )
+    # Replace with your actual Excel file link
+    excel_url = data[0]["mst2_url"]
+
+    # Step 1: Download the Excel file from URL
+    response = requests.get(excel_url)
+    response.raise_for_status()  # Raise error if download fails
+
+    # Step 2: Load Excel content into pandas DataFrame
+    excel_data = pd.read_excel(BytesIO(response.content))
+
+    # Step 3: Convert to JSON
+    records = excel_data.to_json(orient="records")
+
+    # (Optional) Print or return JSON
+    # result = json.loads(json_data)
+    parsed_records = json.loads(records)
+
+    filtered = [record for record in parsed_records if record.get("stu_id") == student_id]
+
+    return filtered
+
+
+
+   
+
+   

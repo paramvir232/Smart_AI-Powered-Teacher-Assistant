@@ -30,6 +30,8 @@ class Teacher(Base):
     college_id = Column(Integer, ForeignKey("colleges.id"))
     Temail = Column(String, nullable=False)
     Tcontact = Column(String, nullable=False)
+    subject = Column(String, nullable=False)
+
     
 
     college = relationship("College", back_populates="teachers")  # ✅ Fixed relationship
@@ -52,6 +54,9 @@ class Class(Base):
     __tablename__ = "classes"
     id = Column(Integer, primary_key=True, index=True)
     Cname = Column(String, nullable=False)
+    mst1_url = Column(String, nullable=False)
+    mst2_url = Column(String, nullable=False)
+
     teacher_id = Column(Integer, ForeignKey("teachers.id"))
 
     teacher = relationship("Teacher", back_populates="classes")  # ✅ Fixed relationship

@@ -1,8 +1,17 @@
-from fastapi import APIRouter, Depends,FastAPI, HTTPException
+from fastapi import APIRouter, Depends,FastAPI, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm.session import Session
 from DB.database import get_db  # Import database connection
 from DB import *  # Import User model
 from pydantic import BaseModel
+from email.message import EmailMessage
+from fastapi.responses import JSONResponse
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart  
+from email.mime.image import MIMEImage
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 
 college_route = APIRouter(prefix="/college", tags=["COLLEGE"])
@@ -216,3 +225,45 @@ def add_class(class_data: ClassCreate, db: Session = Depends(get_db)):
         return {"message": "Class added successfully", "class_id": class_data.class_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error adding class: {str(e)}")
+    
+
+@college_route.post("/{college_id}/send_notice/")
+async def send_notice(
+    college_id: int,
+    title: str = Form(...),
+    description: str = Form(...),
+    image: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    try:
+        # Read the image file
+        emails = get_student(college_id,db)
+        recipient_emails = [email.get("Semail") for email in emails]
+        # recipient_emails=["hi"]
+
+        image_data = await image.read()
+
+        # Create the email
+        msg = EmailMessage()
+        msg["Subject"] = title
+        msg["From"] = f"GNDEC Admin <{os.getenv("my_google_email")}>"  # Set this in your environment
+        msg["To"] = ", ".join(recipient_emails)
+        msg.set_content(description )
+
+        # Attach the image
+        msg.add_attachment(
+            image_data,
+            maintype="image",
+            subtype=image.content_type.split("/")[-1],
+            filename=image.filename
+        )
+
+        # Send the email
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(os.getenv("my_google_email"), os.getenv("google_password"))
+            smtp.send_message(msg)
+
+        return {"message": "Notice sent successfully!"}
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
