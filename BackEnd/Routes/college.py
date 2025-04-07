@@ -246,7 +246,7 @@ async def send_notice(
         # Create the email
         msg = EmailMessage()
         msg["Subject"] = title
-        msg["From"] = f"GNDEC Admin <{os.getenv("my_google_email")}>"  # Set this in your environment
+        msg["From"] = f"GNDEC Admin <{os.getenv('my_google_email')}>"  # Set this in your environment
         msg["To"] = ", ".join(recipient_emails)
         msg.set_content(description )
 
