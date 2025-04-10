@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text,UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text,UniqueConstraint,PrimaryKeyConstraint
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import JSON
 from .database import Base
 import datetime
 
@@ -46,21 +47,31 @@ class Student(Base):
     Semail = Column(String, nullable=False)
     Scontact = Column(String, nullable=False)
     college_id = Column(Integer, ForeignKey("colleges.id"))
+    quiz_marks = Column(Integer, nullable=False)
+
 
     college = relationship("College", back_populates="students")  # ✅ Fixed relationship
     submissions = relationship("Submission", back_populates="student")  # ✅ Added missing relationship
 
 class Class(Base):
     __tablename__ = "classes"
-    id = Column(Integer, primary_key=True, index=True)
+
+    id = Column(Integer, index=True)
     Cname = Column(String, nullable=False)
     mst1_url = Column(String, nullable=False)
     mst2_url = Column(String, nullable=False)
+    quiz = Column(JSON, nullable=False)
+
 
     teacher_id = Column(Integer, ForeignKey("teachers.id"))
 
-    teacher = relationship("Teacher", back_populates="classes")  # ✅ Fixed relationship
-    assignments = relationship("Assignment", back_populates="class_")  # ✅ Added missing relationship
+    __table_args__ = (
+        PrimaryKeyConstraint('id', 'teacher_id'),
+    )
+
+    # Relationships
+    teacher = relationship("Teacher", back_populates="classes")
+    assignments = relationship("Assignment", back_populates="class_") # ✅ Added missing relationship
 
 class Assignment(Base):
     __tablename__ = "assignments"

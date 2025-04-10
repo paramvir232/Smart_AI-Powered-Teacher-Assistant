@@ -25,6 +25,52 @@ client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
 
 student_route = APIRouter(prefix="/student", tags=["STUDENT"])
 
+
+def gemini_response(prompt: str):
+    try:
+        # 1️⃣ Send prompt to Gemini
+        response = client.models.generate_content(
+            model='gemini-2.0-flash-thinking-exp',
+            contents=prompt,
+        )
+        response_text = response.text.strip()
+
+        # 2️⃣ Try to locate either JSON array [ ... ] or full object { ... }
+        array_start = response_text.find('[')
+        array_end = response_text.rfind(']')
+        object_start = response_text.find('{')
+        object_end = response_text.rfind('}')
+
+        if array_start != -1 and array_end != -1:
+            json_string = response_text[array_start:array_end + 1]
+        elif object_start != -1 and object_end != -1:
+            json_string = response_text[object_start:object_end + 1]
+        else:
+            raise ValueError("No valid JSON found in Gemini output.")
+
+        # 3️⃣ Replace single quotes with double quotes (fallback sanitization)
+        json_string = re.sub(r"(?<=\{|,)\s*'([^']+)'\s*:", r'"\1":', json_string)  # fix keys
+        json_string = re.sub(r":\s*'([^']+)'", r': "\1"', json_string)             # fix values
+        json_string = json_string.replace("'", '"')  # final sweep
+
+        # 4️⃣ Parse the cleaned string
+        parsed = json.loads(json_string)
+
+        # 5️⃣ If it's a dictionary with 'quiz', return just the quiz
+        if isinstance(parsed, dict) and "quiz" in parsed:
+            return parsed["quiz"]
+
+        # 6️⃣ If it's a direct list, return it
+        if isinstance(parsed, list):
+            return parsed
+
+        raise ValueError("Unexpected JSON format returned by Gemini.")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Gemini response parsing failed: {str(e)}")
+
+
+
 class LOGIN(BaseModel):
     id:int
     password: str 
@@ -294,8 +340,8 @@ User Query: "{query.query_text}
     return json.loads(json_string)
 
 
-@student_route.get("/{student_id}/mst1-result")
-def get_internal_exam_urls(student_id: int, db: Session = Depends(get_db)):
+@student_route.get("/{student_id}/{class_id}/mst1-result")
+def get_internal_exam_urls(student_id: int,class_id: int, db: Session = Depends(get_db)):
 
     data = CRUD.universal_query(
     db=db,
@@ -308,7 +354,7 @@ def get_internal_exam_urls(student_id: int, db: Session = Depends(get_db)):
         Student.id == student_id
     ],
     attributes={
-        "classes": ["mst1_url"]
+        "classes": ["Cname","mst1_url"]
     }
     )
     # Replace with your actual Excel file link
@@ -371,7 +417,48 @@ def get_internal_exam_urls(student_id: int, db: Session = Depends(get_db)):
 
     return filtered
 
+@student_route.get("/{student_id}/teachers") 
+def get_assigned_teachers(student_id: int, db: Session = Depends(get_db)): 
+    return CRUD.universal_query( 
+        db=db, 
+        base_model=Student, 
+        joins=[ (Enrollment, Enrollment.student_id == Student.id), (Class, Class.id == Enrollment.class_id), (Teacher, Teacher.id == Class.teacher_id) ], 
+        filters=[ Student.id == student_id ], 
+        attributes={ "teachers": ["id", "Tname", "Temail"] } )
 
+
+
+@student_route.get("/{student_id}/get_quiz/{language}") 
+def get_quiz(language: str,student_id: int, db: Session = Depends(get_db)): 
+    quiz=CRUD.universal_query( 
+        db=db, 
+        base_model=Student, 
+        joins=[ (Enrollment, Enrollment.student_id == Student.id), (Class, Class.id == Enrollment.class_id)], 
+        filters=[ Student.id == student_id ], 
+        attributes={ "classes": ["quiz"] } )
+    
+    if language.lower() == "english":
+        return quiz
+    
+    prompt = f"Convert {quiz} in {language} language and keep the same format."
+    return gemini_response(prompt)
+
+    
+
+
+@student_route.patch("/{student_id}/post_quiz/{quiz_marks}") 
+def send_quiz_marks(quiz_marks: int,student_id: int, db: Session = Depends(get_db)):
+    stu_obj = db.query(Student).filter(Student.id == student_id).first()
+    if not stu_obj:
+        raise HTTPException(status_code=404, detail="Class not found")
+    try:
+        stu_obj.quiz_marks = quiz_marks
+        db.commit()
+        db.refresh(stu_obj)
+        return {"Message":"Successfully Inserted"}
+    except:
+        raise HTTPException(status_code=404, detail="Error Has Occured !")
+        
 
    
 

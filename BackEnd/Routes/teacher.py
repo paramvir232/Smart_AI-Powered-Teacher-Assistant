@@ -10,10 +10,13 @@ from sqlalchemy.sql.functions import func
 import requests
 import os
 import smtplib
+import json
 from dotenv import load_dotenv
 from email.mime.text import MIMEText
+from google import genai
 
 load_dotenv()
+client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
 
 
 teacher_route = APIRouter(prefix="/teacher", tags=["TEACHER"])
@@ -235,4 +238,73 @@ def upload_MST2_exam(class_id: int, file: UploadFile = File(...), db: Session = 
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+class RESPONSE(BaseModel):
+    topic: str
+    difficulty: str
+    num_ques: int
+   
+@teacher_route.post("/{class_id}/generate_quiz")
+def generate_quiz(class_id: int, data: RESPONSE, db: Session = Depends(get_db)):
+    prompt = f"""
+You are an expert quiz generator for an educational app. Based on the following input, generate a quiz with multiple-choice questions.
+
+---
+
+📌 INPUT:
+
+- Topic: {data.topic}  
+- Difficulty: {data.difficulty}  
+- Number of Questions: {data.num_ques}
+
+---
+
+🔧 FORMAT for each question (JSON list of objects):
+
+{{
+  "question": "Your question here?",
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "answer": "Correct Answer Here"
+}}
+
+---
+
+💡 INSTRUCTIONS:
+
+1. Make the questions relevant to the topic and difficulty.
+2. Ensure there are **4 options** per question.
+3. Ensure **only one correct answer**, and it must match one of the options.
+4. Return the entire output as a **valid JSON array** (no explanation text, no markdown, no extra formatting).
+"""
+
+    try:
+        response = client.models.generate_content(
+            model='gemini-2.0-flash-thinking-exp',
+            contents=prompt,
+        )
+        response_text = response.text
+
+        # Look for clean JSON array
+        start_index = response_text.find('[')
+        end_index = response_text.rfind(']')
+
+        if start_index == -1 or end_index == -1:
+            raise ValueError("Gemini output doesn't contain a valid JSON array.")
+
+        json_array_string = response_text[start_index:end_index+1]
+        quiz = json.loads(json_array_string)
+
+        class_obj = db.query(Class).filter(Class.id == class_id).first()
+        if not class_obj:
+            raise HTTPException(status_code=404, detail="Class not found")
+
+        class_obj.quiz = quiz
+        db.commit()
+        db.refresh(class_obj)
+
+
+
+        return quiz
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Quiz generation failed: {str(e)}")
