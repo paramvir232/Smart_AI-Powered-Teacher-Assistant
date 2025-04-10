@@ -267,6 +267,24 @@ def get_feedback(student_id : int,ass_id : int,subm_id : int,db: Session = Depen
     return gemini_feedback
 
     # return url[0]["cloudinary_url"]
+@student_route.get("/FeedBack/{subm_id}/{language}")
+def get_feedback_language(language: str,subm_id : int,db: Session = Depends(get_db)):
+        data = CRUD.universal_query(
+        db=db,
+        base_model=Submission,  # Start from Student
+        filters=[
+            Submission.sub_id == subm_id
+        ],
+        attributes={
+            "submissions": ["feedback"]
+        }
+        )
+        prompt = f"Convert {data} in {language} language and keep the same format."
+
+        return gemini_response(prompt)
+        
+    
+
 
 @student_route.get("/submissions/{student_id}")
 def get_submissions(student_id: int, db: Session = Depends(get_db)):
