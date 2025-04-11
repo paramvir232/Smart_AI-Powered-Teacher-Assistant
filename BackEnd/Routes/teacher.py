@@ -243,7 +243,6 @@ class RESPONSE(BaseModel):
     topic: str
     difficulty: str
     num_ques: int
-    duration_min: int
    
 @teacher_route.post("/{class_id}/generate_quiz")
 def generate_quiz(class_id: int, data: RESPONSE, db: Session = Depends(get_db)):
@@ -257,21 +256,16 @@ You are an expert quiz generator for an educational app. Based on the following 
 - Topic: {data.topic}  
 - Difficulty: {data.difficulty}  
 - Number of Questions: {data.num_ques}
-- Total Duration: {data.duration_min} minutes
 
 ---
 
 🔧 FORMAT for each question (JSON list of objects):
 
 {{
-  "duration_min": {data.duration_min},
-  "questions": [
-    {{
-      "question": "Your question here?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "answer": "Correct Answer Here"
-    }}
-  ]
+  "question": "Your question here?",
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "answer": "Correct Answer Here"
+
 }}
 
 ---
