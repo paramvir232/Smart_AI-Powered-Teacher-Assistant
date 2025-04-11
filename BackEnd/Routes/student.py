@@ -478,6 +478,76 @@ def send_quiz_marks(quiz_marks: int,student_id: int, db: Session = Depends(get_d
         raise HTTPException(status_code=404, detail="Error Has Occured !")
         
 
-   
+@student_route.post("/resource_generator")
+def resource_generator(query: QUERY, db: Session = Depends(get_db)):  
+    prompt = f"""
+    🎓 You are an intelligent academic assistant designed to help students find the most useful and credible study resources online.
 
-   
+    ---
+
+    📘 STUDENT QUERY (TOPIC):  
+    "{query}"
+
+    ---
+
+    🎯 OBJECTIVE:  
+    Based on the topic above, provide a curated list of **web resources**, **YouTube videos**, and **study websites** that will help a student understand and explore the topic effectively.
+
+    ---
+
+    💡 INSTRUCTIONS:
+
+    1. Return at least 8–12 high-quality links across various platforms.
+    2. Group them into 3 categories:
+    - 📘 Study Articles & Websites
+    - 🎥 YouTube Videos (links only)
+    - 📚 Free Learning Platforms / Tools
+    3. Prefer resources that are:
+    - Beginner to intermediate friendly
+    - Recently published or updated
+    - Ad-free or free to use
+    - Aligned with academic understanding (NOT blog rants or Reddit threads)
+    4. Avoid general search results or random unverified blog posts.
+
+    ---
+
+    📤 RESPONSE FORMAT (STRICT JSON ONLY):
+
+    {{
+    "topic": "student_topic",
+    "resources": {{
+        "study_articles": [
+        {{"title": "Title", "url": "https://example.com"}}
+        ],
+        "youtube_videos": [
+        {{"title": "Video Title", "url": "https://youtube.com/watch?v=..."}}
+        ],
+        "learning_platforms": [
+        {{"name": "Platform Name", "url": "https://platform.com"}}
+        ]
+    }}
+    }}
+
+    ---
+
+    🎯 You are acting from a student’s perspective. Your suggestions should feel genuinely helpful, not overwhelming, and easy to click and learn from right away.
+
+    ❗ Do not return markdown, explanations, summaries or commentary. ONLY return valid JSON as per the format above.
+    """
+    
+    response = client.models.generate_content(
+        model='gemini-2.0-flash-thinking-exp',
+        contents=prompt,
+    )
+    response_text=response.text
+    start_index = response_text.find('{')
+    end_index = response_text.rfind('}')
+
+    # Extract the JSON substring
+    if start_index != -1 and end_index != -1:
+        json_string = response_text[start_index:end_index+1]  # Include the closing brace
+        print(json_string)
+    else:
+        print("No valid JSON found.")
+
+    return json.loads(json_string)

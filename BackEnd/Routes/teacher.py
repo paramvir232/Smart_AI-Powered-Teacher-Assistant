@@ -243,6 +243,7 @@ class RESPONSE(BaseModel):
     topic: str
     difficulty: str
     num_ques: int
+    duration_min: int
    
 @teacher_route.post("/{class_id}/generate_quiz")
 def generate_quiz(class_id: int, data: RESPONSE, db: Session = Depends(get_db)):
@@ -256,15 +257,21 @@ You are an expert quiz generator for an educational app. Based on the following 
 - Topic: {data.topic}  
 - Difficulty: {data.difficulty}  
 - Number of Questions: {data.num_ques}
+- Total Duration: {data.duration_min} minutes
 
 ---
 
 🔧 FORMAT for each question (JSON list of objects):
 
 {{
-  "question": "Your question here?",
-  "options": ["Option A", "Option B", "Option C", "Option D"],
-  "answer": "Correct Answer Here"
+  "duration_min": {data.duration_min},
+  "questions": [
+    {{
+      "question": "Your question here?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "answer": "Correct Answer Here"
+    }}
+  ]
 }}
 
 ---
@@ -302,9 +309,24 @@ You are an expert quiz generator for an educational app. Based on the following 
         db.commit()
         db.refresh(class_obj)
 
-
-
         return quiz
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Quiz generation failed: {str(e)}")
+    
+
+class QuizConfirmation(BaseModel):
+    quiz: list
+
+@teacher_route.post("/{class_id}/confirm_quiz")
+def confirm_quiz(class_id: int, body: QuizConfirmation, db: Session = Depends(get_db)):
+    class_obj = db.query(Class).filter(Class.id == class_id).first()
+    if not class_obj:
+        raise HTTPException(status_code=404, detail="Class not found")
+
+    class_obj.quiz = body.quiz
+    db.commit()
+    db.refresh(class_obj)
+
+    return {"message": "✅ Quiz saved successfully!"}
+
