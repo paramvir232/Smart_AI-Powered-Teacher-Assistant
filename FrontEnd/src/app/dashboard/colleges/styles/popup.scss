@@ -1,0 +1,36 @@
+.popup-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(106, 106, 106, 0.512);
+  z-index: 9999;
+}
+.popup-content-container {
+  max-width: 700px;
+  width: 100%;
+  border: 1px solid grey;
+  border-radius: 10px;
+  background: rgb(255, 255, 255);
+  padding: 10px;
+}
+.heading {
+  font-size: 1.2rem;
+  color: rgb(137, 137, 137);
+}
+.teacher-detail {
+  color: rgb(0, 0, 0);
+  font-size: 1.5rem;
+}
+.cross-popup {
+  position: relative;
+  top: inherit;
+  right: 10px;
+}
+.details-content {
+  flex-direction: column;
+  gap: 10px;
+}
