@@ -328,7 +328,7 @@ class QUERY(BaseModel):
 @student_route.post("/chatbot")
 def Chatbot_feedback(query: QUERY, db: Session = Depends(get_db)):
     prompt= f"""
-You are a helpful AI assistant integrated into a college management system. The student has sent the following query. Please understand the intent and respond clearly, using friendly and informative language. If the query is about assignments, enrollment, class schedules, grades, or college announcements, provide a relevant answer. Otherwise, say you couldn’t understand and suggest rephrasing.
+You are a helpful AI assistant for both Student and teachers in college management system so always give best and detailed information for their queries.
 
 User Query: "{query.query_text}
 
