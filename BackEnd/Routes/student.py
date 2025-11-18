@@ -341,7 +341,7 @@ User Query: "{query.query_text}
         }}
         The output should **ONLY** be valid JSON, with no additional text."""
     response = client.models.generate_content(
-        model='gemini-2.0-flash-thinking-exp',
+        model='gemini-2.0-flash',
         contents=prompt,
     )
     response_text=response.text
