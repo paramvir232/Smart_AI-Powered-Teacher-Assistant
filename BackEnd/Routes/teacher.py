@@ -280,7 +280,7 @@ You are an expert quiz generator for an educational app. Based on the following 
 
     try:
         response = client.models.generate_content(
-            model='gemini-2.0-flash-thinking-exp',
+            model='gemini-2.5-flash',
             contents=prompt,
         )
         response_text = response.text
