@@ -170,38 +170,64 @@ def to_gemini(text):
     
     extracted_text=f""""{text}"""
     prompt = f"""
-        ### **📝 Assignment Evaluation by Teacher (You)**
-        You are a **strict but fair teacher** evaluating a student's assignment.  
-        This assignment was extracted using **PyMuPDF**, so there may be formatting issues.  
-        Ignore any formatting errors and focus **only on the answers** provided by the student.
+    ### 📝 Assignment Evaluation + Plagiarism Detection (Teacher Mode)
+    
+    You are a **strict but fair teacher** evaluating a student's assignment.
+    The assignment text was extracted using **PyMuPDF**, so ignore formatting or layout issues.  
+    Focus ONLY on the meaning and correctness of the answers.
+    
+    ---
+    
+    ### 🔹 Your Tasks
+    
+    1️⃣ **Identify each question and its answer** from the student's submission.  
+    2️⃣ **Evaluate correctness, clarity, depth, and relevance** of each answer.  
+    3️⃣ **Give an overall grade (out of 10)** based on quality.  
+    4️⃣ **Provide detailed, constructive feedback** for improvement.  
+    
+    ---
+    
+    ### 🔍 Additional Requirement — Plagiarism Check
+    
+    You must also perform plagiarism analysis:
+    
+    - Compare the student's text with general academic knowledge and common publicly available answers.  
+    - Detect if any part appears copied, overly generic, or not-original.  
+    - Provide a **Plagiarism Percentage (0–100%)**, where:  
+      - **0% = fully original**  
+      - **100% = completely copied**  
+    - Provide a **Plagiarism Summary** explaining:  
+      - Which parts seem copied  
+      - Why they appear non-original  
+      - Any suspicious patterns
+    
+    ---
+    
+    ### 📜 Extracted Assignment Submission
+    {extracted_text}
+    
+    ---
+    
+    ### 📝 Output Format (STRICT JSON ONLY)
+    
+    Return output **EXACTLY** in this JSON format:
+    
+    {{
+        "Grade": int,
+        "Feedback": str,
+        "PlagiarismPercentage": int,
+        "PlagiarismSummary": str
+    }}
+    
+    No additional text.  
+    No formatting outside JSON.  
+    No explanations outside JSON.
+    """
 
-        ---
-
-        ### **🔹 Your Task as a Teacher:**
-        1️⃣ **Identify each question and its corresponding answer** from the text.  
-        2️⃣ **Evaluate the correctness and clarity** of each answer.  
-        3️⃣ **Assign a grade (out of 10)** for each response based on accuracy and depth.  
-        4️⃣ **Provide constructive feedback** on how the student can improve their answer.  
-
-        ---
-
-        ### **📜 Extracted Assignment Submission:**
-        {extracted_text}
-
-        ---
-
-        ### **📝 Expected Output from You (Teacher)**
-        Provide a JSON response strictly in this format:
-        {{
-            "Grade": int,
-            "FeedBack": str
-        }}
-        The output should **ONLY** be valid JSON, with no additional text.
-        """
 
     # client = genai.Client(api_key="AIzaSyB1TFZV2Hc2YWuWz5LfUU7AvaEkDWds-rc")
     response = client.models.generate_content(
-        model='gemini-2.0-flash-thinking-exp',
+        model='gemini-2.5-flash',
         contents=prompt,
     )
     response_text=response.text
@@ -341,7 +367,7 @@ User Query: "{query.query_text}
         }}
         The output should **ONLY** be valid JSON, with no additional text."""
     response = client.models.generate_content(
-        model='gemini-2.0-flash',
+        model='gemini-2.5-flash',
         contents=prompt,
     )
     response_text=response.text
@@ -536,7 +562,7 @@ def resource_generator(query: QUERY, db: Session = Depends(get_db)):
     """
     
     response = client.models.generate_content(
-        model='gemini-2.0-flash-thinking-exp',
+        model='gemini-2.5-flash',
         contents=prompt,
     )
     response_text=response.text
